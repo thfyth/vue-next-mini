@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      const obj = {
+        username: '小明',
+        age: 18,
+        get userInfo() {
+          console.log(this);
+          return this.username + '年龄：' + this.age;
+        }
+      };
+      const proxy = new Proxy(obj, {
+        get(target, key, receiver) {
+          console.log('getter');
+          //   return target[key];
+          return Reflect.get(target, key, receiver);
+        },
+        set(target, key, value, receiver) {
+          target[key] = value;
+        }
+      });
+      console.log(proxy.userInfo);
+    </script>
+  </body>
+</html>
