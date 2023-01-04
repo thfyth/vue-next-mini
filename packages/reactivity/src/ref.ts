@@ -47,12 +47,12 @@ export function isRef(r: any): r is Ref {
   // 是否存在ref标识
   return !!(r && r.__v_isRef === true);
 }
-function trackRefValue<T extends RefImpl<T>>(ref) {
+export function trackRefValue<T extends RefImpl<T>>(ref) {
   if (activeEffect) {
     trackEffects(ref.dep || (ref.dep = createDep()));
   }
 }
-function triggerRefValue<T extends RefImpl<T>>(ref) {
+export function triggerRefValue<T extends RefImpl<T>>(ref) {
   if (ref.dep) {
     triggerEffects(ref.dep);
   }

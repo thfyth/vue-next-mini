@@ -1,15 +1,21 @@
+import { ComputedRefImpl } from './computed';
 import { isArray } from './../../shared/src/index';
 import { createDep, Dep } from './dep';
 
 /**
  * 当前被激活的effect
  */
+export type EffectScheduler = (...args: any) => any;
 export let activeEffect: ReactiveEffect | undefined;
 type keyToDepMap = Map<any, Dep>;
 // 搜集的依赖
 let targetMap = new WeakMap<any, keyToDepMap>();
 export class ReactiveEffect<T = any> {
-  constructor(public fn: () => T) {}
+  computed?: ComputedRefImpl<T>;
+  constructor(
+    public fn: () => T,
+    public scheduler: EffectScheduler | null = null
+  ) {}
   run() {
     activeEffect = this;
     return this.fn();
@@ -75,5 +81,11 @@ export function triggerEffects(dep: Dep) {
 }
 
 export function triggerEffect(dep: ReactiveEffect) {
-  dep.fn();
+  console.log('触发');
+
+  if (dep.scheduler) {
+    dep.scheduler();
+  } else {
+    dep.fn();
+  }
 }

@@ -63,21 +63,21 @@ var Vue = (function (exports) {
     var isChanged = function (val, oldVal) {
         return !Object.is(val, oldVal);
     };
+    var isFunction = function (val) { return typeof val === 'function'; };
 
     var createDep = function (effects) {
         var dep = new Set(effects);
         return dep;
     };
 
-    /**
-     * 当前被激活的effect
-     */
     var activeEffect;
     // 搜集的依赖
     var targetMap = new WeakMap();
     var ReactiveEffect = /** @class */ (function () {
-        function ReactiveEffect(fn) {
+        function ReactiveEffect(fn, scheduler) {
+            if (scheduler === void 0) { scheduler = null; }
             this.fn = fn;
+            this.scheduler = scheduler;
         }
         ReactiveEffect.prototype.run = function () {
             activeEffect = this;
@@ -153,7 +153,13 @@ var Vue = (function (exports) {
         }
     }
     function triggerEffect(dep) {
-        dep.fn();
+        console.log('触发');
+        if (dep.scheduler) {
+            dep.scheduler();
+        }
+        else {
+            dep.fn();
+        }
     }
 
     var get = createGetter();
@@ -252,6 +258,46 @@ var Vue = (function (exports) {
         }
     }
 
+    var ComputedRefImpl = /** @class */ (function () {
+        function ComputedRefImpl(getter) {
+            var _this = this;
+            this.__v_isRef = true;
+            this._dirty = true;
+            this.effect = new ReactiveEffect(getter, function () {
+                console.log('初始化');
+                if (!_this._dirty) {
+                    _this._dirty = true;
+                    triggerRefValue(_this);
+                }
+            });
+            this.effect.computed = this;
+        }
+        Object.defineProperty(ComputedRefImpl.prototype, "value", {
+            get: function () {
+                console.log('获取');
+                trackRefValue(this);
+                if (this._dirty) {
+                    this._dirty = false;
+                    this._value = this.effect.run();
+                }
+                return this._value;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        return ComputedRefImpl;
+    }());
+    var computed = function (getterOrOptions) {
+        var getter;
+        var onlyGetter = isFunction(getterOrOptions);
+        if (onlyGetter) {
+            getter = getterOrOptions;
+        }
+        var cRef = new ComputedRefImpl(getter);
+        return cRef;
+    };
+
+    exports.computed = computed;
     exports.effect = effect;
     exports.reactive = reactive;
     exports.ref = ref;

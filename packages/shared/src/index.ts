@@ -6,3 +6,5 @@ export const isObject = (val: unknown) =>
 // 新旧值是否一致
 export const isChanged = (val: unknown, oldVal: unknown): boolean =>
   !Object.is(val, oldVal);
+
+export const isFunction = (val: unknown) => typeof val === 'function';
